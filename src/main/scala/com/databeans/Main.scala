@@ -1,8 +1,14 @@
 package com.databeans
 
+import com.databeans.gold.LikeEvolutionWithTime.extractLikeEvolutionWithTime
+import com.databeans.gold.MostCommentedPostPerUser.extractMostCommentedPostPerUser
+import com.databeans.gold.MostLikedPostPerUser.extractMostLikedPostPerUser
+import com.databeans.gold.TopTenMonthlyCommentersPerUser.extractTopTenMonthlyCommentersPerUser
 import org.apache.spark.sql.SparkSession
 import com.databeans.models._
+import com.databeans.silver.ExtractCommentData.extractCommentData
 import com.databeans.silver.ExtractPostInfoData.extractPostInfoData
+import com.databeans.silver.ExtractProfileInfoData.extractProfileInfoData
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -13,26 +19,24 @@ object Main {
       .getOrCreate()
     import spark.implicits._
 
-    val inputCommentsData = Comments(Seq(
-      Data(1619023963, "18209883163069294", Owner("20740995","sergiroberto"), "💪🏼💪🏼"),
-      Data(1619023963, "18209883163069294", Owner("20740995","sergiroberto"), "hhhhhhhh")
+    val philCoutinhoData = spark.read.option("multiline","true").json("phil.coutinho-1.json")
 
-    ))
-    val inputGraphImagesData= Seq(
-      GraphImages("GraphImage", inputCommentsData, false, Edge_media_preview_like(483475),Edge_media_to_comment(80),
-        "2556864304565671217", false,OwnerGraphImages("1382894360"),"CN7zonEg1Ux", 1619021998, "phil.coutinho")
-    )
-    val inputData = Seq(
-      InputData(inputGraphImagesData, GraphProfileInfo(1286323200, Info("",23156762,1092, "Philippe Coutinho", "1382894360", false, false, false, 618),"phil.coutinho"))
-    ).toDF()
-    val resultPostData = extractPostInfoData(spark,inputData)
-   // val mostLikedPostPerUser = extractLikeEvolutionWithTime(spark,resultPostData)
-   // mostLikedPostPerUser.show()
-    // Register the DataFrame as a table in the metastore
-    //mostLikedPostPerUser.write.mode("overwrite").saveAsTable("my_table")
 
-    // val resultCommentData = extractCommentData(spark,inputData)
-    // val mostLikedCommentPerUser = extractTopTenMonthlyCommentersPerUser(spark,resultCommentData)
+    val commentData = extractCommentData(spark,philCoutinhoData)
+    commentData.write.mode("overwrite").format("parquet").saveAsTable("Comment")
+    val postInfoData = extractPostInfoData(spark, philCoutinhoData)
+    postInfoData.write.mode("overwrite").saveAsTable("PostInfo")
+    val profileInfo = extractProfileInfoData(spark, philCoutinhoData)
+    profileInfo.write.mode("overwrite").saveAsTable("ProfileInfo")
+    val likeEvolutionWithTimeData = extractLikeEvolutionWithTime(spark,postInfoData)
+    likeEvolutionWithTimeData.write.mode("overwrite").saveAsTable("LikeEvolutionWithTime")
+    val mostCommentedPostPerUserData = extractMostCommentedPostPerUser(spark, postInfoData)
+    mostCommentedPostPerUserData.write.mode("overwrite").saveAsTable("MostCommentedPostPerUser")
+    val mostLikedPostPerUserData = extractMostLikedPostPerUser(spark, postInfoData)
+    mostLikedPostPerUserData.write.mode("overwrite").saveAsTable("MostLikedPostPerUser")
+    val topTenMonthlyCommentersPerUserData = extractTopTenMonthlyCommentersPerUser(spark, commentData)
+    topTenMonthlyCommentersPerUserData.write.mode("overwrite").saveAsTable("TopTenMonthlyCommentersPerUser")
+
 
   }
 
