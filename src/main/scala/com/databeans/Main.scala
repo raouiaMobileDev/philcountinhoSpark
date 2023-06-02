@@ -20,23 +20,27 @@ object Main {
     import spark.implicits._
 
     val philCoutinhoData = spark.read.option("multiline","true").json("phil.coutinho-1.json")
-
-
     val commentData = extractCommentData(spark,philCoutinhoData)
-    commentData.write.mode("overwrite").format("parquet").saveAsTable("Comment")
-    val postInfoData = extractPostInfoData(spark, philCoutinhoData)
-    postInfoData.write.mode("overwrite").saveAsTable("PostInfo")
-    val profileInfo = extractProfileInfoData(spark, philCoutinhoData)
-    profileInfo.write.mode("overwrite").saveAsTable("ProfileInfo")
-    val likeEvolutionWithTimeData = extractLikeEvolutionWithTime(spark,postInfoData)
-    likeEvolutionWithTimeData.write.mode("overwrite").saveAsTable("LikeEvolutionWithTime")
-    val mostCommentedPostPerUserData = extractMostCommentedPostPerUser(spark, postInfoData)
-    mostCommentedPostPerUserData.write.mode("overwrite").saveAsTable("MostCommentedPostPerUser")
-    val mostLikedPostPerUserData = extractMostLikedPostPerUser(spark, postInfoData)
-    mostLikedPostPerUserData.write.mode("overwrite").saveAsTable("MostLikedPostPerUser")
-    val topTenMonthlyCommentersPerUserData = extractTopTenMonthlyCommentersPerUser(spark, commentData)
-    topTenMonthlyCommentersPerUserData.write.mode("overwrite").saveAsTable("TopTenMonthlyCommentersPerUser")
+    commentData.write.mode("overwrite").partitionBy("commenter_id").format("parquet").save("hdfs/data/Comment")
 
+    val postInfoData = extractPostInfoData(spark, philCoutinhoData)
+    postInfoData.write.mode("overwrite").partitionBy("profile_id").format("parquet").save("hdfs/data/PostInfo")
+
+
+    val profileInfo = extractProfileInfoData(spark, philCoutinhoData)
+    profileInfo.write.mode("overwrite").partitionBy("id").format("parquet").save("hdfs/data/ProfileInfo")
+
+    val likeEvolutionWithTimeData = extractLikeEvolutionWithTime(spark,postInfoData)
+    likeEvolutionWithTimeData.write.mode("overwrite").partitionBy("profile_id").format("parquet").save("hdfs/data/LikeEvolutionWithTime")
+
+    val mostCommentedPostPerUserData = extractMostCommentedPostPerUser(spark, postInfoData)
+    mostCommentedPostPerUserData.write.mode("overwrite").partitionBy("profile_id").format("parquet").save("hdfs/data/MostCommentedPostPerUser")
+
+    val mostLikedPostPerUserData = extractMostLikedPostPerUser(spark, postInfoData)
+    mostLikedPostPerUserData.write.mode("overwrite").partitionBy("profile_id").format("parquet").save("hdfs/data/MostLikedPostPerUser")
+
+    val topTenMonthlyCommentersPerUserData = extractTopTenMonthlyCommentersPerUser(spark, commentData)
+    topTenMonthlyCommentersPerUserData.write.mode("overwrite").partitionBy("profile_id").format("parquet").save("hdfs/data/TopTenMonthlyCommentersPerUser")
 
   }
 
