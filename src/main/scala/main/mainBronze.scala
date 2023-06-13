@@ -14,7 +14,7 @@ object mainBronze  {
     import spark.implicits._
 
     val inputPhilCoutinhoData=philCoutinhoData.inputtData(spark,"phil.coutinho-1.json")
-    inputPhilCoutinhoData.write.mode("overwrite").format("parquet").save("hdfs/data/bronze/PhilCoutinho")
+    inputPhilCoutinhoData.write.mode("append").format("parquet").save("hdfs/data/bronze/PhilCoutinho")
 
 
   }
