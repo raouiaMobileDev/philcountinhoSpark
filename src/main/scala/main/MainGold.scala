@@ -5,7 +5,7 @@ import com.databeans.gold.MostCommentedPostPerUser.extractMostCommentedPostPerUs
 import com.databeans.gold.MostLikedPostPerUser.extractMostLikedPostPerUser
 import com.databeans.gold.TopTenMonthlyCommentersPerUser.extractTopTenMonthlyCommentersPerUser
 import org.apache.spark.sql.SparkSession
-import com.databeans.models._
+
 
 
 object MainGold {

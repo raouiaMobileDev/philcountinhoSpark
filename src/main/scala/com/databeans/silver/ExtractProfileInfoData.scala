@@ -5,7 +5,6 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 
 object ExtractProfileInfoData {
   def extractProfileInfoData(spark:SparkSession,inputData: DataFrame): DataFrame = {
-    import spark.implicits._
 
     val extractedProfileInfoData=inputData.select(
       col("GraphProfileInfo.info.id"),
